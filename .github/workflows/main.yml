@@ -1,0 +1,216 @@
+name: Teste de Pipeline com Allure
+
+on:
+  workflow_dispatch:
+    inputs:
+      regressao_1:
+        description: 'Run regressao_1'
+        required: false
+        default: 'false'
+      regressao_2:
+        description: 'Run regressao_2'
+        required: false
+        default: 'false'
+      admin:
+        description: 'Run admin'
+        required: false
+        default: 'false'
+
+jobs:
+  ruby-chrome-regressao_1:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.regressao_1 == 'true' }}
+    steps:
+      - name: Get code
+        uses: actions/checkout@v4.1.2
+
+      - name: Install Specific Version of Chrome
+        run: |
+          CHROME_VERSION="121.0.6167.139-1"
+          wget https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_${CHROME_VERSION}_amd64.deb
+          sudo dpkg -i google-chrome-stable_${CHROME_VERSION}_amd64.deb || sudo apt-get -f install -y
+
+      - name: setup-chromedriver
+        uses: nanasess/setup-chromedriver@v2.2.2
+
+      - name: Create logs directory
+        run: mkdir -p logs
+
+      - name: Ruby install
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.0.2'
+
+      - name: Install Dependencies
+        run: |
+          sudo apt install -yqq libpq-dev
+          gem install bundler
+          yarn install
+
+      - name: Install Gems
+        run: |
+          bundle install
+
+      - name: Run Capybara tests - Regressao 1
+        run: |
+          free -h
+          bundler exec cucumber -t @regressao_1 chrome_headless=true local=true
+          free -h
+
+      - name: Get Allure history
+        uses: actions/checkout@v2
+        if: always()
+        continue-on-error: true
+        with:
+          ref: gh-pages
+          path: gh-pages
+
+      - name: Allure Report action from marketplace
+        uses: simple-elf/allure-report-action@master
+        if: always()
+        id: allure-report
+        with:
+          allure_results: allure/output
+          gh_pages: gh-pages
+          allure_report: allure-report
+          allure_history: allure-history
+
+      - name: Deploy report to Github Pages
+        if: always()
+        uses: peaceiris/actions-gh-pages@v2
+        env:
+          PERSONAL_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PUBLISH_BRANCH: gh-pages
+          PUBLISH_DIR: allure-history
+
+  ruby-chrome-regressao_2:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.regressao_2 == 'true' }}
+    steps:
+      - name: Get code
+        uses: actions/checkout@v4.1.2
+
+      - name: Install Specific Version of Chrome
+        run: |
+          CHROME_VERSION="121.0.6167.139-1"
+          wget https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_${CHROME_VERSION}_amd64.deb
+          sudo dpkg -i google-chrome-stable_${CHROME_VERSION}_amd64.deb || sudo apt-get -f install -y
+
+      - name: setup-chromedriver
+        uses: nanasess/setup-chromedriver@v2.2.2
+
+      - name: Create logs directory
+        run: mkdir -p logs
+
+      - name: Ruby install
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.0.2'
+
+      - name: Install Dependencies
+        run: |
+          sudo apt install -yqq libpq-dev
+          gem install bundler
+          yarn install
+
+      - name: Install Gems
+        run: |
+          bundle install
+
+      - name: Run Capybara tests - Regressao 2
+        run: |
+          free -h
+          bundler exec cucumber -t @regressao_2 chrome_headless=true local=true
+          free -h
+
+      - name: Get Allure history
+        uses: actions/checkout@v2
+        if: always()
+        continue-on-error: true
+        with:
+          ref: gh-pages
+          path: gh-pages
+
+      - name: Allure Report action from marketplace
+        uses: simple-elf/allure-report-action@master
+        if: always()
+        id: allure-report
+        with:
+          allure_results: allure/output
+          gh_pages: gh-pages
+          allure_report: allure-report
+          allure_history: allure-history
+
+      - name: Deploy report to Github Pages
+        if: always()
+        uses: peaceiris/actions-gh-pages@v2
+        env:
+          PERSONAL_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PUBLISH_BRANCH: gh-pages
+          PUBLISH_DIR: allure-history
+
+  ruby-chrome-admin:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.admin == 'true' }}
+    steps:
+      - name: Get code
+        uses: actions/checkout@v4.1.2
+
+      - name: Install Specific Version of Chrome
+        run: |
+          CHROME_VERSION="121.0.6167.139-1"
+          wget https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_${CHROME_VERSION}_amd64.deb
+          sudo dpkg -i google-chrome-stable_${CHROME_VERSION}_amd64.deb || sudo apt-get -f install -y
+
+      - name: setup-chromedriver
+        uses: nanasess/setup-chromedriver@v2.2.2
+
+      - name: Create logs directory
+        run: mkdir -p logs
+
+      - name: Ruby install
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.0.2'
+
+      - name: Install Dependencies
+        run: |
+          sudo apt install -yqq libpq-dev
+          gem install bundler
+          yarn install
+
+      - name: Install Gems
+        run: |
+          bundle install
+
+      - name: Run Capybara tests - Admin
+        run: |
+          free -h
+          bundler exec cucumber -t @admin chrome_headless=true local=true
+          free -h
+
+      - name: Get Allure history
+        uses: actions/checkout@v2
+        if: always()
+        continue-on-error: true
+        with:
+          ref: gh-pages
+          path: gh-pages
+
+      - name: Allure Report action from marketplace
+        uses: simple-elf/allure-report-action@master
+        if: always()
+        id: allure-report
+        with:
+          allure_results: allure/output
+          gh_pages: gh-pages
+          allure_report: allure-report
+          allure_history: allure-history
+
+      - name: Deploy report to Github Pages
+        if: always()
+        uses: peaceiris/actions-gh-pages@v2
+        env:
+          PERSONAL_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PUBLISH_BRANCH: gh-pages
+          PUBLISH_DIR: allure-history
